@@ -1,0 +1,59 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DJANGO_SETTINGS_MODULE: "config.settings.production"
+  PYTHONPATH: "$CI_PROJECT_DIR"
+
+# Cache Python dependencies
+cache:
+  paths:
+    - .venv/
+
+# Test stage
+test:
+  stage: test
+  image: python:3.11
+  services:
+    - postgres:16.2-alpine
+  variables:
+    POSTGRES_DB: "test_db"
+    POSTGRES_USER: "test_user"
+    POSTGRES_PASSWORD: "test_password"
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - python manage.py migrate --noinput
+  script:
+    - python manage.py test
+  artifacts:
+    paths:
+      - .coverage
+    reports:
+      junit:
+        - junit.xml
+
+# Build stage
+build:
+  stage: build
+  image: python:3.11
+  script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - python manage.py collectstatic --noinput
+
+# Deploy stage
+deploy:
+  stage: deploy
+  image: python:3.11
+  script:
+    - apt-get update && apt-get install -y ssh
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - python manage.py migrate --noinput
+    - python manage.py collectstatic --noinput
+    - ssh user@your-server 'cd /path/to/your/project && git pull origin main && systemctl restart your-service'
+  only:
+    - main

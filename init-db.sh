@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+# Check if database exists
+if ! psql -lqt | cut -d \| -f 1 | grep -qw "$POSTGRES_NAME"; then
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    CREATE DATABASE $POSTGRES_NAME;
+    CREATE USER $POSTGRES_USER WITH ENCRYPTED PASSWORD '$POSTGRES_PASSWORD';
+    GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_NAME TO $POSTGRES_USER;
+  EOSQL
+fi
