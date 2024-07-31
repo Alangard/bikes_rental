@@ -17,7 +17,7 @@ cd bikes_rental
 * Go to IAM and create a new user with access to S3:
 * Create a group with the AmazonS3FullAccess policy.
 * Create a user and add it to the group.
-* Save the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY_ID and the name of the bucket.
+* Save the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY_ID` and the `name of the bucket`.
 
 3. setting environment variables
 Create a `.env` folder in the project root and inside it a `.env.dev` file, add the following variables to the file by replacing `your_secret_key`, `your_bd_name`, `your_bd_username`, `your_bd_pass`, `your_aws_access_key_id`, `your_aws_secret_access_key`, `your_s3_bucket_name` with your values :
@@ -117,4 +117,4 @@ docker-compose -f docker-compose.prod.yml up --build
 
 
 ## Sample requests
-See the chemas on: http://{your_domain_name}/api/docs/ 
+See the chemas on: `http://{your_domain_name}/api/docs/`
