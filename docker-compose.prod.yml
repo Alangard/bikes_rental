@@ -1,69 +1,95 @@
+version: '3.8'
+
 services:
   api:
-      build: .
-      container_name: DjangoAPI
-      command: >
-        bash -c "python manage.py collectstatic --no-input &&
-        python manage.py makemigrations --no-input&&
-        python manage.py migrate --no-input &&
-        gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
-      ports:
-        - 8000:8000
-      # - 587:587
-      restart: always
-      depends_on:
-        - db
-      volumes:
-        - .:/code
-        - static_volume:/code/static/
-      env_file:
-        - ./.env/.env.prod
-      networks:
-        api_network:
+    build: .
+    container_name: DjangoAPI
+    command: >
+      bash -c "python manage.py collectstatic --no-input &&
+      python manage.py makemigrations --no-input &&
+      python manage.py migrate --no-input &&
+      gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - .:/code
+      - static_volume:/code/static/
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=0
+      - PROD=1
+      - DEV=0
+      - TEST=0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - POSTGRES_ENGINE=${POSTGRES_ENGINE}
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
+      
+    networks:
+      - api_network
 
-  # PostgreSQL Database Service
   db:
     container_name: PostgreSQL
     image: postgres:16.2-alpine
     expose:
-      - 5432
+      - "5432"
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-    env_file:
-      - ./.env/.env.prod
+    environment:
+      - POSTGRES_DB=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
-      api_network:
+      - api_network
 
-
-# Celery Service
   celery:
     build: .
     container_name: Celery
     command: celery -A config worker --loglevel=info
     volumes:
-        - .:/code
-    env_file:
-      - ./.env/.env.prod
+      - .:/code
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=0
+      - PROD=1
+      - DEV=0
+      - TEST=0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
     depends_on:
-        - api
-        - redis
+      - api
+      - redis
     networks:
-      api_network:
+      - api_network
 
-  #Redis Service
   redis:
     container_name: Redis
     image: "redis:7.2-alpine"
     networks:
-      api_network:
+      - api_network
 
-  
 volumes:
-  # will be used to store our ssl certificate and make it persistent as wel   
   postgres_data:
   static_volume:
-    
+
 networks:
   api_network:

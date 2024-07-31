@@ -11,30 +11,21 @@ services:
         - 8000:8000
       # - 587:587
       restart: always
-      depends_on:
-        - db
       volumes:
         - .:/code
         - static_volume:/code/static/
-      env_file:
-        - ./.env/.env.test
+      environment:
+        - SECRET_KEY=${SECRET_KEY}
+        - DEBUG=${DEBUG}
+        - PROD=${PROD}
+        - DEV=${DEV}
+        - TEST=${TEST}
+        - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+        - REDIS_URL=${REDIS_URL}
+        - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+        - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
       networks:
         api_network:
-
-  # PostgreSQL Database Service
-  db:
-    container_name: PostgreSQL
-    image: postgres:16.2-alpine
-    expose:
-      - 5432
-    restart: always
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - ./.env/.env.test
-    networks:
-      api_network:
-
 
 # Celery Service
   celery:
@@ -43,8 +34,16 @@ services:
     command: celery -A config worker --loglevel=info
     volumes:
         - .:/code
-    env_file:
-      - ./.env/.env.test
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - PROD=${PROD}
+      - DEV=${DEV}
+      - TEST=${TEST}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
         - api
         - redis
@@ -66,3 +65,6 @@ volumes:
     
 networks:
   api_network:
+
+
+  

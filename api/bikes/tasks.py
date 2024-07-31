@@ -1,7 +1,7 @@
 from typing import Optional
 from celery import shared_task
 from django.utils import timezone
-from django import transaction
+from django.db import transaction
 from datetime import datetime
 from .models import Rental
 from decimal import Decimal, ROUND_HALF_UP
